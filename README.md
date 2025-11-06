@@ -37,7 +37,7 @@ CSharp-API-OAuth2-Demo/
 ### 1. Clone and Restore
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/CSharp-API-OAuth2-Demo.git
+git clone https://github.com/karnafun/CSharp-API-OAuth2-Demo.git
 cd CSharp-API-OAuth2-Demo
 dotnet restore
 ```
@@ -158,7 +158,7 @@ This demo uses Resource Owner Password grant for simplicity. Production applicat
 
 ## Learn More
 
-* **[Full Tutorial on DEV.to](https://dev.to/your-username/your-post-slug)** - Detailed explanation with code walkthrough
+* **[Full Tutorial on DEV.to](https://dev.to/karnafun/building-an-oauth2-protected-api-with-c-identityserver-and-aspnet-core-23g2)** - Detailed explanation with code walkthrough
 * [Duende IdentityServer Documentation](https://docs.duendesoftware.com/identityserver)
 * [OAuth 2.0 Specification](https://oauth.net/2/)
 * [JWT.io](https://jwt.io/) - Decode and inspect tokens
@@ -168,7 +168,8 @@ This demo uses Resource Owner Password grant for simplicity. Production applicat
 This project is provided as-is for educational purposes.
 
 ---
+**Questions or issues?** Open an issue or check the [DEV.to tutorial](https://dev.to/karnafun/building-an-oauth2-protected-api-with-c-identityserver-and-aspnet-core-23g2) for detailed explanations.
 
-**Questions or issues?** Open an issue or check the [DEV.to tutorial](https://dev.to/your-username/your-post-slug) for detailed explanations.
-
+Looking for help building secure APIs? [Hire me](https://www.fiverr.com/s/NNKV0VG)  
 *Backend engineer & API integrator. Building secure, scalable APIs with .NET.*
+
