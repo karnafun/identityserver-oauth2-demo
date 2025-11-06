@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Identity Server - Request OAuth2 Token</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center p-4">
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="fixed top-4 right-4 z-50 space-y-2 max-w-md"></div>
+
+    <div class="bg-gray-800 shadow-2xl rounded-2xl p-8 w-full max-w-md border border-gray-700">
+        <h1 class="text-3xl font-bold text-center text-blue-400 mb-2">Identity Server</h1>
+        <h2 class="text-lg text-center text-gray-400 mb-6">Request OAuth2 Token</h2>
+
+        <form id="tokenForm" class="space-y-4">
+            <input type="text" id="username" name="username" value="demo" class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-gray-100" placeholder="Username" required>
+            <input type="password" id="password" name="password" value="password" class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-gray-100" placeholder="Password" required>
+
+            <input type="text" id="client_id" name="client_id" value="demo-client" class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-gray-100" placeholder="Client ID" required>
+            <input type="text" id="client_secret" name="client_secret" value="demo-secret" class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-gray-100" placeholder="Client Secret" required>
+            <input type="text" id="scope" name="scope" value="api.read" class="w-full bg-gray-700 border border-gray-600 rounded p-2 text-gray-100" placeholder="Scope" required>
+
+            <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition">Get Token</button>
+        </form>
+
+        <div id="result" class="mt-6 bg-gray-700 p-3 rounded text-sm text-gray-200 overflow-auto whitespace-pre-wrap"></div>
+
+        <button id="copyBtn" class="hidden w-full bg-green-600 text-white mt-4 p-2 rounded hover:bg-green-700 transition">Copy Token</button>
+    </div>
+
+    <script>
+        const form = document.getElementById("tokenForm");
+        const resultDiv = document.getElementById("result");
+        const copyBtn = document.getElementById("copyBtn");
+        const notificationContainer = document.getElementById("notificationContainer");
+
+        function showNotification(message, type = "error", autoDismiss = true) {
+            const notification = document.createElement("div");
+            const bgColor = type === "error" ? "bg-red-600" : type === "success" ? "bg-green-600" : "bg-blue-600";
+            const borderColor = type === "error" ? "border-red-500" : type === "success" ? "border-green-500" : "border-blue-500";
+            
+            notification.className = `${bgColor} border ${borderColor} text-white px-4 py-3 rounded-lg shadow-lg flex items-center justify-between min-w-[300px] max-w-md`;
+            notification.innerHTML = `
+                <span class="flex-1">${message}</span>
+                <button class="ml-4 text-white hover:text-gray-200 font-bold" onclick="this.parentElement.remove()">×</button>
+            `;
+            
+            notificationContainer.appendChild(notification);
+
+            if (autoDismiss) {
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 5000);
+            }
+        }
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            copyBtn.classList.add("hidden");
+            resultDiv.textContent = "Requesting token...";
+
+            const data = new URLSearchParams();
+            data.append("grant_type", "password");
+            data.append("client_id", form.client_id.value);
+            data.append("client_secret", form.client_secret.value);
+            data.append("username", form.username.value);
+            data.append("password", form.password.value);
+            data.append("scope", form.scope.value);
+
+            try {
+                const res = await fetch("/connect/token", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: data
+                });
+
+                const text = await res.text();
+                resultDiv.textContent = text;
+
+                if (res.ok) {
+                    try {
+                        const json = JSON.parse(text);
+                        if (json.access_token) {
+                            copyBtn.classList.remove("hidden");
+                            copyBtn.onclick = async () => {
+                                try {
+                                    await navigator.clipboard.writeText(json.access_token);
+                                    copyBtn.textContent = "Copied!";
+                                    showNotification("Token copied to clipboard!", "success");
+                                    setTimeout(() => (copyBtn.textContent = "Copy Token"), 2000);
+                                } catch (clipboardError) {
+                                    showNotification(`Failed to copy to clipboard: ${clipboardError.message}. Please copy manually.`, "error", false);
+                                    console.error("Clipboard error:", clipboardError);
+                                }
+                            };
+                        } else {
+                            showNotification("Token response received but no access_token found.", "error");
+                        }
+                    } catch (parseError) {
+                        const errorMsg = `Error parsing response: ${parseError.message}`;
+                        resultDiv.textContent = errorMsg + "\n\nResponse: " + text;
+                        showNotification(errorMsg, "error", false);
+                        copyBtn.classList.add("hidden");
+                    }
+                } else {
+                    let errorMsg = "Failed to get token";
+                    try {
+                        const errorJson = JSON.parse(text);
+                        errorMsg = errorJson.error_description || errorJson.error || errorMsg;
+                    } catch {
+                        errorMsg = text || errorMsg;
+                    }
+                    showNotification(errorMsg, "error", false);
+                    copyBtn.classList.add("hidden");
+                }
+            } catch (err) {
+                const errorMsg = `Network error: ${err.message}`;
+                resultDiv.textContent = errorMsg;
+                showNotification(errorMsg, "error", false);
+                copyBtn.classList.add("hidden");
+                console.error("Request error:", err);
+            }
+        });
+    </script>
+</body>
+</html>
